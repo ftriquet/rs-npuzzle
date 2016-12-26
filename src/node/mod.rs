@@ -1,6 +1,7 @@
 use std::fmt;
 use std::cmp::Ordering;
 use heuristics;
+use std::str::FromStr;
 
 type Board = Vec<usize>;
 
@@ -59,6 +60,59 @@ impl Ord for Node {
 impl PartialOrd for Node {
     fn partial_cmp(&self, other: &Node) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+pub enum NodeError {
+    ParseError,
+    UnsolvableError,
+}
+
+impl fmt::Display for NodeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            NodeError::ParseError => "invalid game format".fmt(f),
+            NodeError::UnsolvableError => "unsolvable game".fmt(f)
+        }
+    }
+}
+
+impl FromStr for Node {
+    type Err = NodeError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut values: Board = Vec::new();
+        let mut lines = s.lines();
+
+        let len = try!(
+            lines.next()
+            .ok_or(NodeError::ParseError)
+            .and_then(|line| line.parse::<usize>().map_err(|_| NodeError::ParseError))
+        );
+
+        for l in lines {
+            let str_values = l.split_whitespace().collect::<Vec<_>>();
+
+            if str_values.len() != len {
+                return Err(NodeError::ParseError);
+            }
+
+            let mut vals_as_nums = str_values.iter().map(|v| v.parse::<usize>());
+            if vals_as_nums.any(|v| v.is_err()) {
+                return Err(NodeError::ParseError);
+            }
+
+            for v in vals_as_nums.map(Result::unwrap) {
+                values.push(v);
+            }
+        }
+
+        Ok(Node {
+            board: values,
+            len: len,
+            cost: 0,
+            heuristic: 0,
+            parents: None,
+        })
     }
 }
 
