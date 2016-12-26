@@ -2,6 +2,8 @@ use std::fmt;
 use std::cmp::Ordering;
 use heuristics;
 
+type Board = Vec<usize>;
+
 pub enum Direction {
     North,
     South,
@@ -9,12 +11,13 @@ pub enum Direction {
     West,
 }
 
-
+#[derive (Clone)]
 pub struct Node {
-    pub board: Vec<u8>,
+    pub board: Board,
     pub len: usize,
     pub cost: usize,
     pub heuristic: usize,
+    pub parents: Option<Vec<Board>>,
 }
 
 impl fmt::Display for Node {
@@ -61,13 +64,13 @@ impl PartialOrd for Node {
 
 impl Node {
     pub fn goal(size: usize) -> Node {
-        let mut tab: Vec<u8> = vec![0; size * size];
+        let mut tab: Vec<usize> = vec![0; size * size];
         let mut pos = 0;
         let mut cpt = 0;
         let mut inc = 1_i32;
 
         for i in 1..size*size {
-            tab[pos] = i as u8;
+            tab[pos] = i;
 
             if cpt + 1 == size || tab[(pos as i32 + inc) as usize] != 0 {
                 inc = match inc {
@@ -90,6 +93,7 @@ impl Node {
             board: tab,
             cost: 0,
             heuristic: 0,
+            parents: None,
         }
     }
 
@@ -109,7 +113,7 @@ impl Node {
         (pos / self.len, pos % self.len)
     }
 
-    pub fn get_pos(&self, num: u8) -> Option<(usize, usize)> {
+    pub fn get_pos(&self, num: usize) -> Option<(usize, usize)> {
         match self.board.iter().position(|&r| r == num) {
             Some(pos) => Some((pos / self.len, pos % self.len)),
             None => None
@@ -127,7 +131,7 @@ impl Node {
         };
 
         let mut new_board = self.board.clone();
-        let tmp: u8;
+        let tmp: usize;
 
         let (pos, new_pos) = (self.get_array_pos(x, y), self.get_array_pos(new_x, new_y));
 
@@ -140,13 +144,22 @@ impl Node {
             len: self.len,
             heuristic: 0,
             cost: 0,
+            parents: None,
         };
+
+        let mut parents = match self.parents {
+            Some(ref p) => p.clone(),
+            None => Vec::new(),
+        };
+
+        parents.push(self.board.clone());
 
         Node {
             board: new_board,
             len: self.len,
             heuristic: heuristics::eval_heuristic(heuristics::Heuristic::Manhattan, tmp_node),
             cost: self.cost + 1,
+            parents: Some(parents),
         }
     }
 

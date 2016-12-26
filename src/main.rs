@@ -1,10 +1,10 @@
 mod node;
 mod heuristics;
 
+use node::Node;
 use std::collections::BinaryHeap;
 
 fn main() {
-
     let board = vec![
         8,  0,  9,  3,
         1,  6, 2, 4,
@@ -19,6 +19,7 @@ fn main() {
         len: 3,
         heuristic: 0,
         cost: 0,
+        parents: None,
     };
 
     solve(n);
@@ -35,6 +36,16 @@ pub fn solve(n: node::Node) {
     while let Some(node) = open.pop() {
         if node == goal {
             println!("Solved!");
+            for p in node.clone().parents.unwrap() {
+                let tmp = Node {
+                    len: 3,
+                    heuristic: 0,
+                    cost: 0,
+                    parents: None,
+                    board: p.clone(),
+                };
+                tmp.print_grid();
+            }
             node.print_grid();
             break
         } else {
