@@ -1,8 +1,14 @@
+extern crate clap;
+
 mod node;
 mod heuristics;
 
 use node::Node;
 use std::collections::BinaryHeap;
+use clap::{Arg, App, SubCommand};
+use std::fs::File;
+use std::io::Read;
+use std::error::Error;
 
 fn main() {
     let board = vec![
@@ -22,7 +28,32 @@ fn main() {
         parents: None,
     };
 
-    solve(n);
+    let matches = App::new("Npuzzle")
+        .about("Taquin solver")
+        .arg(Arg::with_name("file")
+             .short("f")
+             .long("file")
+             .value_name("FILE")
+             .help("File containing the initial configuration")
+             )
+        .get_matches();
+
+    let file_name = matches.value_of("file").unwrap_or("default.map");
+    let mut file = match File::open(file_name) {
+        Ok(f) => f,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    let mut s = String::new();
+    file.read_to_string(&mut s);
+
+    match s.parse::<node::Node>() {
+        Ok(n) => solve(n),
+        Err(e) => println!("Error: {}", e),
+    }
 }
 
 pub fn solve(n: node::Node) {

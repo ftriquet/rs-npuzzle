@@ -11,3 +11,4 @@ greedy = []
 uniform = []
 
 [dependencies]
+clap = "2.19.0"

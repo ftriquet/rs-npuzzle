@@ -63,6 +63,7 @@ impl PartialOrd for Node {
     }
 }
 
+#[derive (Debug)]
 pub enum NodeError {
     ParseError,
     UnsolvableError,
