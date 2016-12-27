@@ -92,18 +92,20 @@ impl FromStr for Node {
 
         for l in lines {
             let str_values = l.split_whitespace().collect::<Vec<_>>();
+            if str_values.len() == 0 {
+                continue
+            }
 
             if str_values.len() != len {
                 return Err(NodeError::ParseError);
             }
 
-            let mut vals_as_nums = str_values.iter().map(|v| v.parse::<usize>());
-            if vals_as_nums.any(|v| v.is_err()) {
-                return Err(NodeError::ParseError);
-            }
-
-            for v in vals_as_nums.map(Result::unwrap) {
-                values.push(v);
+            let vals_as_nums = str_values.iter().map(|v| v.parse::<usize>());
+            for v in vals_as_nums {
+                if v.is_err() {
+                    return Err(NodeError::ParseError);
+                }
+                values.push(v.unwrap());
             }
         }
 
