@@ -2,6 +2,8 @@ use std::fmt;
 use std::cmp::Ordering;
 use heuristics;
 use std::str::FromStr;
+use rand;
+use rand::Rng;
 
 type Board = Vec<usize>;
 
@@ -152,6 +154,61 @@ impl Node {
             heuristic: 0,
             parents: None,
         }
+    }
+
+    pub fn random(size: usize, iterations: usize, solvable: bool) -> Node {
+        let mut goal = Self::goal(size);
+
+        for _ in 0..iterations {
+            goal.swap_empty();
+        }
+
+        if !solvable {
+            goal.make_unsolvable();
+        }
+
+        goal
+    }
+
+    pub fn swap_empty(&mut self) {
+        let mut possibilities: Vec<usize> = Vec::new();
+        let size = self.len;
+
+        let index = match self.get_pos(0) {
+            None => return,
+            Some((x, y)) => x * self.len + y,
+        };
+
+        if index % size > 0 {
+            possibilities.push(index - 1);
+        }
+
+        if index % size < size -1 {
+            possibilities.push(index + 1);
+        }
+
+        if index / size > 0 {
+            possibilities.push(index - size);
+        }
+
+        if index / size < size - 1 {
+            possibilities.push(index + size);
+        }
+
+        let rnd = rand::thread_rng().gen_range::<usize>(0, possibilities.len());
+        self.board[index] = self.board[possibilities[rnd]];
+        self.board[possibilities[rnd]] = 0;
+    }
+
+    pub fn make_unsolvable(&mut self) {
+        let (idx1, idx2) = if self.board[0] == 0 || self.board[1] == 0 {
+            (self.len * self.len - 1, self.len * self.len - 2)
+        } else {
+            (0, 1)
+        };
+        let tmp = self.board[idx1];
+        self.board[idx1] = self.board[idx2];
+        self.board[idx2] = tmp;
     }
 
     pub fn print_grid(&self) {
