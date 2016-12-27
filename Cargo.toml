@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["François Triquet <francois.triquet@recast.ai>"]
 
 [features]
-default = []
+default = ["uniform"]
 
 greedy = []
 
