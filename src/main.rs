@@ -29,17 +29,29 @@ fn main() {
         parents: None,
     };
 
-    let matches = App::new("Npuzzle")
-        .about("Taquin solver")
-        .arg(Arg::with_name("file")
-             .short("f")
-             .long("file")
-             .value_name("FILE")
-             .help("File containing the initial configuration")
-             )
-        .get_matches();
+    // let matches = App::new("Npuzzle")
+    //     .about("Taquin solver")
+    //     .subCommand(SubCommand::with_name("generate")
+    //                 .about("generates random game configuration")
+    //                 .arg(Arg::with_name("size")
+    //                      .short("s")
+    //                      .long("size")
+    //                      .value_name("SIZE"))
+    //                 .arg(Arg::with_name("solvable")
+    //                      .long("solvable")
+    //                      .value_name("SOLVABLE"))
+    //                 .arg(Arg::with_name("iterations")
+    //                      .short("i")
+    //                      .long("iterations")
+    //                      .value_name("ITERATIONS")))
+    //     .subCommand(SubCommand::with_name("solve")
+    //                 .about("solves random game configuration")
+    //                 .arg(Arg::with_name("file")
+    //                      .index(1)
+    //                      .value_name("FILE"))).get_matches();
 
-    let file_name = matches.value_of("file").unwrap_or("default.map");
+    // let file_name = matches.value_of("file").unwrap_or("default.map");
+    let file_name = "default.map";
     let mut file = match File::open(file_name) {
         Ok(f) => f,
         Err(e) => {

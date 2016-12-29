@@ -4,6 +4,7 @@ use heuristics;
 use std::str::FromStr;
 use rand;
 use rand::Rng;
+use std::collections::HashMap;
 
 type Board = Vec<usize>;
 
@@ -68,6 +69,7 @@ impl PartialOrd for Node {
 #[derive (Debug)]
 pub enum NodeError {
     ParseError,
+    InvalidContentError,
     UnsolvableError,
 }
 
@@ -75,7 +77,8 @@ impl fmt::Display for NodeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             NodeError::ParseError => "invalid game format".fmt(f),
-            NodeError::UnsolvableError => "unsolvable game".fmt(f)
+            NodeError::UnsolvableError => "unsolvable game".fmt(f),
+            NodeError::InvalidContentError => "invalid board content".fmt(f)
         }
     }
 }
@@ -111,13 +114,19 @@ impl FromStr for Node {
             }
         }
 
-        Ok(Node {
+        let node = Node {
             board: values,
             len: len,
             cost: 0,
             heuristic: 0,
             parents: None,
-        })
+        };
+
+        if node.check_content() {
+            Ok(node)
+        } else {
+            Err(NodeError::InvalidContentError)
+        }
     }
 }
 
@@ -154,6 +163,36 @@ impl Node {
             heuristic: 0,
             parents: None,
         }
+    }
+
+    pub fn check_content(&self) -> bool {
+        let mut occurences: HashMap<usize, usize> = HashMap::new();
+
+        for i in 0..self.len*self.len {
+            occurences.insert(i, 0);
+        }
+
+        for n in &self.board {
+            let occ = occurences.entry(*n).or_insert(0);
+            *occ += 1;
+        }
+
+        for i in 0..self.len*self.len {
+            match occurences.get(&i) {
+                None => {}, // should never happen
+                Some(x) => {
+                    if *x == 0 {
+                        return false
+                    }
+                }
+            }
+        }
+
+        if occurences.len() != self.len*self.len {
+            return false
+        }
+
+        true
     }
 
     pub fn random(size: usize, iterations: usize, solvable: bool) -> Node {
