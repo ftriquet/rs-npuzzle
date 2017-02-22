@@ -99,6 +99,7 @@ fn main() {
 
 pub fn solve(n: node::Node) {
     let goal: node::Node = node::Node::goal(n.len);
+    let h = heuristics::Manhattan;
 
     let mut open: BinaryHeap<node::Node> = BinaryHeap::new();
     let mut closed: BinaryHeap<node::Node> = BinaryHeap::new();
@@ -121,16 +122,15 @@ pub fn solve(n: node::Node) {
             node.print_grid();
             break
         } else {
-            let neighbours = node.get_next_steps();
+            let neighbours = node.get_next_steps(h);
 
             for neighbour in neighbours {
-                match open.iter().find(|&node| *node == neighbour)
-                    .or(closed.iter().find(|&n| *n == neighbour)) {
-                        Some(_) => {},
-                        None => {
-                            open.push(neighbour)
-                        },
-                    }
+                if open.iter()
+                    .find(|&node| *node == neighbour)
+                    .or_else(|| closed.iter().find(|&node| *node == neighbour))
+                    .is_none() {
+                    open.push(neighbour)
+                }
             }
         }
         closed.push(node);

@@ -26,19 +26,24 @@ pub struct Node {
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ Board: {:?}({}), Cost: {}, Heuristic: {} }}", self.board, self.len, self.cost, self.heuristic)
+        write!(f,
+               "{{ Board: {:?}({}), Cost: {}, Heuristic: {} }}",
+               self.board,
+               self.len,
+               self.cost,
+               self.heuristic)
     }
 }
 
 impl PartialEq for Node {
     fn eq(&self, other: &Node) -> bool {
         if self.board.len() != other.board.len() {
-            return false
+            return false;
         }
 
         for (i, &v) in self.board.iter().enumerate() {
             if v != other.board[i] {
-                return false
+                return false;
             }
         }
 
@@ -78,7 +83,7 @@ impl fmt::Display for NodeError {
         match *self {
             NodeError::ParseError => "invalid game format".fmt(f),
             NodeError::UnsolvableError => "unsolvable game".fmt(f),
-            NodeError::InvalidContentError => "invalid board content".fmt(f)
+            NodeError::InvalidContentError => "invalid board content".fmt(f),
         }
     }
 }
@@ -89,16 +94,14 @@ impl FromStr for Node {
         let mut values: Board = Vec::new();
         let mut lines = s.lines();
 
-        let len = try!(
-            lines.next()
+        let len = try!(lines.next()
             .ok_or(NodeError::ParseError)
-            .and_then(|line| line.parse::<usize>().map_err(|_| NodeError::ParseError))
-        );
+            .and_then(|line| line.parse::<usize>().map_err(|_| NodeError::ParseError)));
 
         for l in lines {
             let str_values = l.split_whitespace().collect::<Vec<_>>();
-            if str_values.len() == 0 {
-                continue
+            if str_values.is_empty() {
+                continue;
             }
 
             if str_values.len() != len {
@@ -137,7 +140,7 @@ impl Node {
         let mut cpt = 0;
         let mut inc = 1_i32;
 
-        for i in 1..size*size {
+        for i in 1..size * size {
             tab[pos] = i;
 
             if cpt + 1 == size || tab[(pos as i32 + inc) as usize] != 0 {
@@ -168,7 +171,7 @@ impl Node {
     pub fn check_content(&self) -> bool {
         let mut occurences: HashMap<usize, usize> = HashMap::new();
 
-        for i in 0..self.len*self.len {
+        for i in 0..self.len * self.len {
             occurences.insert(i, 0);
         }
 
@@ -177,19 +180,19 @@ impl Node {
             *occ += 1;
         }
 
-        for i in 0..self.len*self.len {
+        for i in 0..self.len * self.len {
             match occurences.get(&i) {
-                None => {}, // should never happen
+                None => {} // should never happen
                 Some(x) => {
                     if *x == 0 {
-                        return false
+                        return false;
                     }
                 }
             }
         }
 
-        if occurences.len() != self.len*self.len {
-            return false
+        if occurences.len() != self.len * self.len {
+            return false;
         }
 
         true
@@ -222,7 +225,7 @@ impl Node {
             possibilities.push(index - 1);
         }
 
-        if index % size < size -1 {
+        if index % size < size - 1 {
             possibilities.push(index + 1);
         }
 
@@ -245,15 +248,13 @@ impl Node {
         } else {
             (0, 1)
         };
-        let tmp = self.board[idx1];
-        self.board[idx1] = self.board[idx2];
-        self.board[idx2] = tmp;
+        self.board.swap(idx1, idx2);
     }
 
     pub fn print_grid(&self) {
         print!("Board [");
         for x in 0..self.len {
-            print!("\n{:?}", &self.board[x*self.len .. x*self.len + self.len]);
+            print!("\n{:?}", &self.board[x * self.len..x * self.len + self.len]);
         }
         println!("] Cost: {}, Heuristic: {}\n", self.cost, self.heuristic);
     }
@@ -269,18 +270,18 @@ impl Node {
     pub fn get_pos(&self, num: usize) -> Option<(usize, usize)> {
         match self.board.iter().position(|&r| r == num) {
             Some(pos) => Some((pos / self.len, pos % self.len)),
-            None => None
+            None => None,
         }
     }
 
-    fn permute(&self, direction: Direction) -> Node {
+    fn permute<H: heuristics::Heuristic<Node>>(&self, direction: Direction, h: H) -> Node {
         let (x, y) = self.get_pos(0).unwrap();
 
         let (new_x, new_y) = match direction {
             Direction::North => (x - 1, y),
             Direction::South => (x + 1, y),
             Direction::East => (x, y + 1),
-            Direction::West => (x, y - 1)
+            Direction::West => (x, y - 1),
         };
 
         let mut new_board = self.board.clone();
@@ -292,7 +293,7 @@ impl Node {
         new_board[new_pos] = 0;
         new_board[pos] = tmp;
 
-        let tmp_node: &Node = &Node {
+        let tmp_node: Node = Node {
             board: new_board.clone(),
             len: self.len,
             heuristic: 0,
@@ -310,31 +311,31 @@ impl Node {
         Node {
             board: new_board,
             len: self.len,
-            heuristic: heuristics::eval_heuristic(heuristics::Heuristic::Manhattan, tmp_node),
+            heuristic: h.eval(tmp_node),
             cost: self.cost + 1,
             parents: Some(parents),
         }
     }
 
-    pub fn get_next_steps(&self)  -> Vec<Node> {
+    pub fn get_next_steps<H: heuristics::Heuristic<Node>>(&self, h: H) -> Vec<Node> {
         let (x, y) = self.get_pos(0).unwrap();
 
         let mut next_states: Vec<Node> = Vec::with_capacity(4);
 
         if x != 0 {
-            next_states.push(self.permute(Direction::North))
+            next_states.push(self.permute(Direction::North, h))
         }
 
         if x != self.len - 1 {
-            next_states.push(self.permute(Direction::South))
+            next_states.push(self.permute(Direction::South, h))
         }
 
         if y != 0 {
-            next_states.push(self.permute(Direction::West))
+            next_states.push(self.permute(Direction::West, h))
         }
 
         if y != self.len - 1 {
-            next_states.push(self.permute(Direction::East))
+            next_states.push(self.permute(Direction::East, h))
         }
 
         next_states
