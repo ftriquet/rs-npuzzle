@@ -14,7 +14,7 @@ impl Heuristic<node::Node> for Manhattan {
         let mut sum = 0_usize;
         let goal = node::Node::goal(n.len);
 
-        for (i, val) in n.board.iter().enumerate() {
+        for val in &n.board {
             let (x, y) = goal.get_pos(*val).unwrap();
             let (pos_x, pos_y) = n.get_pos(*val).unwrap();
 

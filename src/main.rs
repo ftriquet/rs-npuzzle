@@ -9,26 +9,8 @@ use std::collections::BinaryHeap;
 use clap::{Arg, App, SubCommand};
 use std::fs::File;
 use std::io::Read;
-use std::error::Error;
 
 fn main() {
-    let board = vec![
-        8,  0,  9,  3,
-        1,  6, 2, 4,
-        12, 15, 5, 13,
-        11, 14, 10, 7
-    ];
-    let n = node::Node {
-        board: vec![1,  2,  3,
-                    7,  8,  4,
-                    6,  5,  0],
-        //board: board,
-        len: 3,
-        heuristic: 0,
-        cost: 0,
-        parents: None,
-    };
-
     let matches = App::new("Npuzzle")
         .about("Taquin solver")
         .subcommand(SubCommand::with_name("generate")
@@ -62,7 +44,7 @@ fn main() {
         };
 
         let mut s = String::new();
-        file.read_to_string(&mut s);
+        file.read_to_string(&mut s).expect("Unable to read file");
 
         match s.parse::<node::Node>() {
             Ok(n) => solve(n),
