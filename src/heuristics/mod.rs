@@ -1,11 +1,9 @@
 use node;
 
-#[derive(Copy, Clone)]
 pub struct Manhattan;
-#[derive(Copy, Clone)]
 pub struct Euclide;
 
-pub trait Heuristic<T>: Copy {
+pub trait Heuristic<T> {
     fn eval(&self, _: T) -> usize {
         0
     }

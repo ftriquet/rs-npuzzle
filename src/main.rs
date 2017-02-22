@@ -122,7 +122,7 @@ pub fn solve(n: node::Node) {
             node.print_grid();
             break
         } else {
-            let neighbours = node.get_next_steps(h);
+            let neighbours = node.get_next_steps(&h);
 
             for neighbour in neighbours {
                 if open.iter()

@@ -274,7 +274,7 @@ impl Node {
         }
     }
 
-    fn permute<H: heuristics::Heuristic<Node>>(&self, direction: Direction, h: H) -> Node {
+    fn permute<H: heuristics::Heuristic<Node>>(&self, direction: Direction, h: &H) -> Node {
         let (x, y) = self.get_pos(0).unwrap();
 
         let (new_x, new_y) = match direction {
@@ -317,7 +317,7 @@ impl Node {
         }
     }
 
-    pub fn get_next_steps<H: heuristics::Heuristic<Node>>(&self, h: H) -> Vec<Node> {
+    pub fn get_next_steps<H: heuristics::Heuristic<Node>>(&self, h: &H) -> Vec<Node> {
         let (x, y) = self.get_pos(0).unwrap();
 
         let mut next_states: Vec<Node> = Vec::with_capacity(4);
