@@ -252,7 +252,7 @@ impl Node {
         self.board.swap(idx1, idx2);
     }
 
-    pub fn format_colors(b1: &Board, b2: &Board) -> Vec<(Colour, usize)> {
+    pub fn format_colors(b1: &[usize], b2: &[usize]) -> Vec<(Colour, usize)> {
         b1.iter().zip(b2.iter()).map(|(a, b)| {
             if a == b {
                 (Colour::White, *a)

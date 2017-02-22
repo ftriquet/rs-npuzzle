@@ -96,7 +96,7 @@ fn print_result(n: Node) {
     println!("");
 
     for (b1, b2) in it.zip(it2) {
-        let colours = Node::format_colors(&b1, &b2);
+        let colours = Node::format_colors(b1, b2);
         for x in 0..len {
             let colored_numbers = &colours[x * len..x * len + len].iter().map(|&(c, v)| {
                 c.paint(v.to_string()).to_string()
