@@ -1,5 +1,6 @@
 extern crate clap;
 extern crate rand;
+extern crate ansi_term;
 
 mod node;
 mod heuristics;
@@ -46,7 +47,7 @@ fn main() {
         let mut s = String::new();
         file.read_to_string(&mut s).expect("Unable to read file");
 
-        match s.parse::<node::Node>() {
+        match s.parse::<Node>() {
             Ok(n) => solve(n),
             Err(e) => println!("Error: {}", e),
         }
@@ -64,7 +65,7 @@ fn main() {
             10
         });
 
-        let n = node::Node::random(size, iterations, solvable);
+        let n = Node::random(size, iterations, solvable);
         println!("{}", n.len);
         let mut it = n.board.iter().peekable();
 
@@ -79,29 +80,49 @@ fn main() {
     }
 }
 
-pub fn solve(n: node::Node) {
-    let goal: node::Node = node::Node::goal(n.len);
+fn print_result(n: Node) {
+    let p = n.parents.unwrap();
+    let mut it = p.iter();
+    let it2 = it.clone();
+    let first_node = it.next().unwrap();
+    let len = n.len;
+    for x in 0..len {
+        let line = &first_node[x * len..x * len + len];
+        for n in line {
+            print!("{} ", ansi_term::Colour::White.paint(n.to_string()));
+        }
+        println!("");
+    }
+    println!("");
+
+    for (b1, b2) in it.zip(it2) {
+        let colours = Node::format_colors(&b1, &b2);
+        for x in 0..len {
+            let colored_numbers = &colours[x * len..x * len + len].iter().map(|&(c, v)| {
+                c.paint(v.to_string()).to_string()
+            }).collect::<Vec<_>>();
+            for n in colored_numbers {
+                print!("{} ", n);
+            }
+            println!("");
+        }
+        println!("");
+    }
+}
+
+pub fn solve(n: Node) {
+    let goal: Node = Node::goal(n.len);
     let h = heuristics::Manhattan;
 
-    let mut open: BinaryHeap<node::Node> = BinaryHeap::new();
-    let mut closed: BinaryHeap<node::Node> = BinaryHeap::new();
+    let mut open: BinaryHeap<Node> = BinaryHeap::new();
+    let mut closed: BinaryHeap<Node> = BinaryHeap::new();
 
     open.push(n);
 
     while let Some(node) = open.pop() {
         if node == goal {
+            print_result(node);
             println!("Solved!");
-            for p in node.clone().parents.unwrap() {
-                let tmp = Node {
-                    len: 3,
-                    heuristic: 0,
-                    cost: 0,
-                    parents: None,
-                    board: p.clone(),
-                };
-                tmp.print_grid();
-            }
-            node.print_grid();
             break
         } else {
             let neighbours = node.get_next_steps(&h);

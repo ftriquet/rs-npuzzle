@@ -5,6 +5,7 @@ use std::str::FromStr;
 use rand;
 use rand::Rng;
 use std::collections::HashMap;
+use ansi_term::Colour;
 
 type Board = Vec<usize>;
 
@@ -249,6 +250,16 @@ impl Node {
             (0, 1)
         };
         self.board.swap(idx1, idx2);
+    }
+
+    pub fn format_colors(b1: &Board, b2: &Board) -> Vec<(Colour, usize)> {
+        b1.iter().zip(b2.iter()).map(|(a, b)| {
+            if a == b {
+                (Colour::White, *a)
+            } else {
+                (Colour::Red, *a)
+            }
+        }).collect()
     }
 
     pub fn print_grid(&self) {

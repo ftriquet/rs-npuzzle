@@ -1,15 +1,14 @@
 [package]
+authors = ["François Triquet <francois.triquet@recast.ai>"]
 name = "npuzzle"
 version = "0.1.0"
-authors = ["François Triquet <francois.triquet@recast.ai>"]
+
+[dependencies]
+ansi_term = "0.9.0"
+clap = "2.19.0"
+rand = "0.3"
 
 [features]
 default = ["greedy"]
-
 greedy = []
-
 uniform = []
-
-[dependencies]
-clap = "2.19.0"
-rand = "0.3"
