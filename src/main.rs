@@ -86,6 +86,7 @@ fn print_result(n: Node) {
     let it2 = it.clone();
     let first_node = it.next().unwrap();
     let len = n.len;
+    let solution_len = p.len();
     for x in 0..len {
         let line = &first_node[x * len..x * len + len];
         for n in line {
@@ -98,7 +99,7 @@ fn print_result(n: Node) {
     for (b1, b2) in it.zip(it2) {
         let colours = Node::format_colors(b1, b2);
         for x in 0..len {
-            let colored_numbers = &colours[x * len..x * len + len].iter().map(|&(c, v)| {
+            let colored_numbers = colours[x * len..x * len + len].iter().map(|&(c, v)| {
                 c.paint(v.to_string()).to_string()
             }).collect::<Vec<_>>();
             for n in colored_numbers {
@@ -108,6 +109,7 @@ fn print_result(n: Node) {
         }
         println!("");
     }
+    println!("Solved in {} moves!", solution_len);
 }
 
 pub fn solve(n: Node) {
@@ -122,7 +124,6 @@ pub fn solve(n: Node) {
     while let Some(node) = open.pop() {
         if node == goal {
             print_result(node);
-            println!("Solved!");
             break
         } else {
             let neighbours = node.get_next_steps(&h);

@@ -257,7 +257,7 @@ impl Node {
             if a == b {
                 (Colour::White, *a)
             } else {
-                (Colour::Red, *a)
+                (Colour::Green, *a)
             }
         }).collect()
     }
