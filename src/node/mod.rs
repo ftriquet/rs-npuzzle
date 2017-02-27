@@ -120,7 +120,14 @@ impl FromStr for Node {
     type Err = NodeError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut values: Board = Vec::new();
-        let mut lines = s.lines();
+        let mut lines = s.lines().filter_map(|l| {
+            let before_comment = l.split('#').next().unwrap_or("").trim();
+            if before_comment.is_empty() {
+                None
+            } else {
+                Some(before_comment)
+            }
+        });
 
         let len = try!(lines.next()
             .ok_or(NodeError::ParseError)
