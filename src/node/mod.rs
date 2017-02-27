@@ -385,3 +385,75 @@ impl Node {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::Node;
+    #[test]
+    fn parsing_test() {
+        let no_size =
+"
+1   2   3
+8   0   4
+7   6   5
+";
+        assert!(no_size.parse::<Node>().is_err());
+
+        let non_numeric_size =
+"
+hello
+1   2   3
+8   0   4
+7   6   5
+";
+        assert!(non_numeric_size.parse::<Node>().is_err());
+
+        let inconsistent_size =
+"
+4
+1   2   3
+8   0   4
+7   6   5
+";
+        assert!(inconsistent_size.parse::<Node>().is_err());
+
+        let basic_map =
+"
+3
+1   2   3
+8   0   4
+7   6   5
+";
+        assert!(basic_map.parse::<Node>().is_ok());
+        assert!(basic_map.parse::<Node>().unwrap().board == vec![1, 2, 3, 8, 0, 4, 7, 6, 5]);
+
+        let invalid_content =
+"
+3
+1   2   3
+8   0   4
+0   6   5
+";
+        assert!(invalid_content.parse::<Node>().is_err());
+
+        let invalid_content =
+"
+3
+1   2   3
+8   0   14
+7   6   5
+";
+        assert!(invalid_content.parse::<Node>().is_err());
+
+        let with_comments =
+"
+3
+# this is a comment
+1   2   3
+8   0   4 # and another
+7   6   5
+";
+        assert!(with_comments.parse::<Node>().is_ok());
+        assert!(with_comments.parse::<Node>().unwrap().board == vec![1, 2, 3, 8, 0, 4, 7, 6, 5]);
+    }
+}
