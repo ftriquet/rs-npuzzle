@@ -334,9 +334,7 @@ impl Node {
 
         let (pos, new_pos) = (n.get_array_pos(x, y), n.get_array_pos(new_x, new_y));
 
-        tmp = new_board[new_pos];
-        new_board[new_pos] = 0;
-        new_board[pos] = tmp;
+        new_board.swap(pos, new_pos);
 
         let tmp_node: Node = Node {
             board: new_board.clone(),
@@ -389,6 +387,29 @@ impl Node {
 #[cfg(test)]
 mod test {
     use super::Node;
+    use super::heuristics;
+    use super::Direction;
+    use std::rc::Rc;
+    #[test]
+    fn test_permute() {
+        let h = heuristics::Manhattan;
+        let n: Node = "
+3
+1   2   3
+8   0   4
+7   6   5
+".parse().expect("Map should be valid");
+        let r = Rc::new(n);
+        let south = Node::permute(Direction::South, &h, &r);
+        assert!(south.board == vec![1, 2, 3, 8, 6, 4, 7, 0, 5]);
+        let north = Node::permute(Direction::North, &h, &r);
+        assert!(north.board == vec![1, 0, 3, 8, 2, 4, 7, 6, 5]);
+        let west = Node::permute(Direction::West, &h, &r);
+        assert!(west.board == vec![1, 2, 3, 0, 8, 4, 7, 6, 5]);
+        let east = Node::permute(Direction::East, &h, &r);
+        assert!(east.board == vec![1, 2, 3, 8, 4, 0, 7, 6, 5]);
+    }
+
     #[test]
     fn parsing_test() {
         let no_size =
