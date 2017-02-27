@@ -73,7 +73,7 @@ fn main() {
         while it.peek().is_some() {
             let line: String = it.by_ref()
                                  .take(n.len)
-                                 .map(|v| format!("{0:-2}", v))
+                                 .map(|v| format!("{0:<3}", v))
                                  .collect::<Vec<_>>()
                                  .join(" ");
             println!("{}", line);
@@ -94,7 +94,7 @@ fn print_result(n: &Node) -> usize {
     for x in 0..len {
         let line = &first_node[x * len..x * len + len];
         for n in line {
-            print!("{} ", ansi_term::Colour::White.paint(n.to_string()));
+            print!("{} ", ansi_term::Colour::White.paint(format!("{0:<3}", n)));
         }
         println!("");
     }
@@ -104,12 +104,9 @@ fn print_result(n: &Node) -> usize {
         let colours = Node::format_colors(&b1, &b2);
         for x in 0..len {
             let colored_numbers = colours[x * len..x * len + len].iter().map(|&(c, v)| {
-                c.paint(v.to_string()).to_string()
-            }).collect::<Vec<_>>();
-            for n in colored_numbers {
-                print!("{} ", n);
-            }
-            println!("");
+                c.paint(format!("{0:<3}", v.to_string())).to_string()
+            }).collect::<Vec<_>>().join(" ");
+            println!("{}", colored_numbers);
         }
         println!("");
     }
@@ -121,12 +118,12 @@ fn print_result(n: &Node) -> usize {
 pub fn solve(n: Node) {
     let goal: Node = Node::goal(n.len);
     let h = heuristics::Manhattan;
-    let _rc = Rc::new(n);
+    let r = Rc::new(n);
 
     let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
     let mut closed: BinaryHeap<Rc<Node>> = BinaryHeap::new();
 
-    open.push(_rc);
+    open.push(r);
 
     while let Some(node) = open.pop() {
         if *(node.as_ref()) == goal {
