@@ -21,8 +21,23 @@ impl Heuristic<node::Node> for Manhattan {
             sum += (pos_x as i32 - x as i32).abs() as usize + (pos_y as i32 - y as i32).abs() as usize;
         }
 
-        sum + 1
+        sum
     }
 }
 
-impl Heuristic<node::Node> for Euclide {}
+impl Heuristic<node::Node> for Euclide {
+    fn eval(&self, n: node::Node) -> usize {
+        let mut sum = 0_usize;
+        let goal = node::Node::goal(n.len);
+
+        for val in &n.board {
+            let (x, y) = goal.get_pos(*val).unwrap();
+            let (pos_x, pos_y) = n.get_pos(*val).unwrap();
+            let dx = (pos_x as i32 - x as i32).abs() as usize;
+            let dy = (pos_y as i32 - y as i32).abs() as usize;
+            sum += ((dx * dx + dy * dy) as f64).sqrt() as usize;
+        }
+
+        sum
+    }
+}
