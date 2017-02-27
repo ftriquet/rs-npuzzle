@@ -9,6 +9,6 @@ clap = "2.19.0"
 rand = "0.3"
 
 [features]
-default = ["greedy"]
+default = ["uniform"]
 greedy = []
 uniform = []

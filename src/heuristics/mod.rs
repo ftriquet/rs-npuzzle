@@ -21,7 +21,7 @@ impl Heuristic<node::Node> for Manhattan {
             sum += (pos_x as i32 - x as i32).abs() as usize + (pos_y as i32 - y as i32).abs() as usize;
         }
 
-        sum
+        sum + 1
     }
 }
 

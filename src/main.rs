@@ -10,6 +10,7 @@ use std::collections::BinaryHeap;
 use clap::{Arg, App, SubCommand};
 use std::fs::File;
 use std::io::Read;
+use std::rc::Rc;
 
 fn main() {
     let matches = App::new("Npuzzle")
@@ -80,13 +81,16 @@ fn main() {
     }
 }
 
-fn print_result(n: Node) {
-    let p = n.parents.unwrap();
-    let mut it = p.iter();
-    let it2 = it.clone();
+fn print_result(n: &Node) -> usize {
+    let v = n.parents().collect::<Vec<_>>();
+    let mut it = v.iter().rev().map(|node| node.board.clone());
+    let v2 = n.parents().collect::<Vec<_>>();
+    let it2 = v2.iter().rev().map(|node| node.board.clone());
+
+
     let first_node = it.next().unwrap();
     let len = n.len;
-    let solution_len = p.len();
+    let solution_len = v.len();
     for x in 0..len {
         let line = &first_node[x * len..x * len + len];
         for n in line {
@@ -97,7 +101,7 @@ fn print_result(n: Node) {
     println!("");
 
     for (b1, b2) in it.zip(it2) {
-        let colours = Node::format_colors(b1, b2);
+        let colours = Node::format_colors(&b1, &b2);
         for x in 0..len {
             let colored_numbers = colours[x * len..x * len + len].iter().map(|&(c, v)| {
                 c.paint(v.to_string()).to_string()
@@ -110,33 +114,35 @@ fn print_result(n: Node) {
         println!("");
     }
     println!("Solved in {} moves!", solution_len);
+
+    solution_len
 }
 
 pub fn solve(n: Node) {
     let goal: Node = Node::goal(n.len);
     let h = heuristics::Manhattan;
+    let _rc = Rc::new(n);
 
-    let mut open: BinaryHeap<Node> = BinaryHeap::new();
-    let mut closed: BinaryHeap<Node> = BinaryHeap::new();
+    let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
+    let mut closed: BinaryHeap<Rc<Node>> = BinaryHeap::new();
 
-    open.push(n);
+    open.push(_rc);
 
     while let Some(node) = open.pop() {
-        if node == goal {
-            print_result(node);
+        if *(node.as_ref()) == goal {
+            print_result(node.as_ref());
             break
         } else {
-            let neighbours = node.get_next_steps(&h);
+            let r = node;
+            let neighbours = Node::get_next_steps(&r, &h);
 
             for neighbour in neighbours {
-                if open.iter()
-                    .find(|&node| *node == neighbour)
-                    .or_else(|| closed.iter().find(|&node| *node == neighbour))
-                    .is_none() {
-                    open.push(neighbour)
+                if open.iter().find(|&node| **node == neighbour).is_none() &&
+                    closed.iter().find(|&node| **node == neighbour).is_none() {
+                    open.push(Rc::new(neighbour))
                 }
             }
+            closed.push(r);
         }
-        closed.push(node);
     }
 }

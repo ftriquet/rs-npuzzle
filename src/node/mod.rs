@@ -6,6 +6,7 @@ use rand;
 use rand::Rng;
 use std::collections::HashMap;
 use ansi_term::Colour;
+use std::rc::Rc;
 
 type Board = Vec<usize>;
 
@@ -22,8 +23,34 @@ pub struct Node {
     pub len: usize,
     pub cost: usize,
     pub heuristic: usize,
-    pub parents: Option<Vec<Board>>,
+    pub parents: Option<Rc<Node>>,
 }
+
+pub struct NodeIter<'a> {
+    current: Option<&'a Node>,
+}
+
+impl<'a> Iterator for NodeIter<'a> {
+    type Item = &'a Node;
+
+    fn next(&mut self) -> Option<&'a Node> {
+        let res = match self.current {
+            None => None,
+            Some(n) => Some(n),
+        };
+        match res {
+            None => self.current = None,
+            Some(r) => {
+                self.current = match r.parents {
+                    Some(ref r) => Some(r),
+                    None => None,
+                }
+            }
+        }
+        res
+    }
+}
+
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -62,7 +89,7 @@ impl Ord for Node {
 
     #[cfg(feature = "uniform")]
     fn cmp(&self, other: &Node) -> Ordering {
-        other.heuristic.cmp(&(self.cost + self.heuristic))
+        (other.heuristic + other.cost).cmp(&(self.cost + self.heuristic))
     }
 }
 
@@ -285,8 +312,8 @@ impl Node {
         }
     }
 
-    fn permute<H: heuristics::Heuristic<Node>>(&self, direction: Direction, h: &H) -> Node {
-        let (x, y) = self.get_pos(0).unwrap();
+    fn permute<H: heuristics::Heuristic<Node>>(direction: Direction, h: &H, n: &Rc<Node>) -> Node {
+        let (x, y) = n.get_pos(0).unwrap();
 
         let (new_x, new_y) = match direction {
             Direction::North => (x - 1, y),
@@ -295,10 +322,10 @@ impl Node {
             Direction::West => (x, y - 1),
         };
 
-        let mut new_board = self.board.clone();
+        let mut new_board = n.board.clone();
         let tmp: usize;
 
-        let (pos, new_pos) = (self.get_array_pos(x, y), self.get_array_pos(new_x, new_y));
+        let (pos, new_pos) = (n.get_array_pos(x, y), n.get_array_pos(new_x, new_y));
 
         tmp = new_board[new_pos];
         new_board[new_pos] = 0;
@@ -306,49 +333,48 @@ impl Node {
 
         let tmp_node: Node = Node {
             board: new_board.clone(),
-            len: self.len,
+            len: n.len,
             heuristic: 0,
             cost: 0,
             parents: None,
         };
 
-        let mut parents = match self.parents {
-            Some(ref p) => p.clone(),
-            None => Vec::new(),
-        };
-
-        parents.push(self.board.clone());
-
         Node {
             board: new_board,
-            len: self.len,
+            len: n.len,
             heuristic: h.eval(tmp_node),
-            cost: self.cost + 1,
-            parents: Some(parents),
+            cost: n.cost + 1,
+            parents: Some(n.clone()),
         }
     }
 
-    pub fn get_next_steps<H: heuristics::Heuristic<Node>>(&self, h: &H) -> Vec<Node> {
-        let (x, y) = self.get_pos(0).unwrap();
+    pub fn get_next_steps<H: heuristics::Heuristic<Node>>(n: &Rc<Node>, h: &H) -> Vec<Node> {
+        let (x, y) = n.get_pos(0).unwrap();
 
         let mut next_states: Vec<Node> = Vec::with_capacity(4);
 
-        if x != 0 {
-            next_states.push(self.permute(Direction::North, h))
-        }
-
-        if x != self.len - 1 {
-            next_states.push(self.permute(Direction::South, h))
-        }
-
         if y != 0 {
-            next_states.push(self.permute(Direction::West, h))
+            next_states.push(Node::permute(Direction::West, h, n))
         }
 
-        if y != self.len - 1 {
-            next_states.push(self.permute(Direction::East, h))
+        if y != n.len - 1 {
+            next_states.push(Node::permute(Direction::East, h, n))
+        }
+
+        if x != n.len - 1 {
+            next_states.push(Node::permute(Direction::South, h, n))
+        }
+
+        if x != 0 {
+            next_states.push(Node::permute(Direction::North, h, n))
         }
 
         next_states
+    }
+
+    pub fn parents(&self) -> NodeIter {
+        NodeIter {
+            current: Some(self),
+        }
     }
 }
