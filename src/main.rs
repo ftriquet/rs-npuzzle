@@ -6,7 +6,7 @@ mod node;
 mod heuristics;
 
 use node::Node;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap};
 use clap::{Arg, App, SubCommand};
 use std::fs::File;
 use std::io::Read;
@@ -132,14 +132,31 @@ pub fn solve(n: Node) {
         } else {
             let r = node;
             let neighbours = Node::get_next_steps(&r, &h);
+            closed.push(r);
 
             for neighbour in neighbours {
-                if open.iter().find(|&node| **node == neighbour).is_none() &&
-                    closed.iter().find(|&node| **node == neighbour).is_none() {
-                    open.push(Rc::new(neighbour))
+                if closed.iter().find(|&node| **node == neighbour).is_some() {
+                    continue;
+                }
+
+                let mut should_push = false;
+                open.iter().find(|&node| {
+                    **node == neighbour
+                }).or_else(|| {
+                    should_push = true;
+                    None
+                }).and_then(|n| {
+                    if n.cost > neighbour.cost {
+                        should_push = true;
+                        Some(())
+                    } else {
+                        None
+                    }
+                });
+                if should_push {
+                    open.push(Rc::new(neighbour));
                 }
             }
-            closed.push(r);
         }
     }
 }
