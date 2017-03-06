@@ -121,7 +121,6 @@ pub fn solve(n: Node) {
     let r = Rc::new(n);
 
     let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
-    // let mut closed: BinaryHeap<Rc<Node>> = BinaryHeap::new();
     let mut closed: HashSet<Rc<Node>> = HashSet::new();
 
     open.push(r);

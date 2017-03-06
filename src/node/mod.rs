@@ -337,8 +337,6 @@ impl Node {
         };
 
         let mut new_board = n.board.clone();
-        let tmp: usize;
-
         let (pos, new_pos) = (n.get_array_pos(x, y), n.get_array_pos(new_x, new_y));
 
         new_board.swap(pos, new_pos);
