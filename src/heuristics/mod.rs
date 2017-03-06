@@ -3,6 +3,7 @@ use node;
 pub struct Manhattan;
 pub struct Euclide;
 pub struct LinearConflict;
+pub struct MisplacedTiles;
 
 pub trait Heuristic<T> {
     fn eval(&self, _: T) -> usize {
@@ -20,6 +21,21 @@ impl Heuristic<node::Node> for Manhattan {
             let (pos_x, pos_y) = n.get_pos(*val).unwrap();
 
             sum += (pos_x as i32 - x as i32).abs() as usize + (pos_y as i32 - y as i32).abs() as usize;
+        }
+
+        sum
+    }
+}
+
+impl Heuristic<node::Node> for MisplacedTiles {
+    fn eval(&self, n: node::Node) -> usize {
+        let mut sum = 0_usize;
+        let goal = node::Node::goal(n.len);
+
+        for (v, w) in goal.board.iter().zip(n.board.iter()) {
+            if v != w {
+                sum += 1;
+            }
         }
 
         sum
