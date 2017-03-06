@@ -6,7 +6,7 @@ mod node;
 mod heuristics;
 
 use node::Node;
-use std::collections::{BinaryHeap};
+use std::collections::{BinaryHeap,HashSet};
 use clap::{Arg, App, SubCommand};
 use std::fs::File;
 use std::io::Read;
@@ -121,7 +121,8 @@ pub fn solve(n: Node) {
     let r = Rc::new(n);
 
     let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
-    let mut closed: BinaryHeap<Rc<Node>> = BinaryHeap::new();
+    // let mut closed: BinaryHeap<Rc<Node>> = BinaryHeap::new();
+    let mut closed: HashSet<Rc<Node>> = HashSet::new();
 
     open.push(r);
 
@@ -132,10 +133,9 @@ pub fn solve(n: Node) {
         } else {
             let r = node;
             let neighbours = Node::get_next_steps(&r, &h);
-            closed.push(r);
 
             for neighbour in neighbours {
-                if closed.iter().find(|&node| **node == neighbour).is_some() {
+                if closed.get(&r).is_some() {
                     continue;
                 }
 
@@ -157,6 +157,7 @@ pub fn solve(n: Node) {
                     open.push(Rc::new(neighbour));
                 }
             }
+            closed.insert(r);
         }
     }
 }

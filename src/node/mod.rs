@@ -7,6 +7,7 @@ use rand::Rng;
 use std::collections::HashMap;
 use ansi_term::Colour;
 use std::rc::Rc;
+use std::hash::{Hash, Hasher};
 
 type Board = Vec<usize>;
 
@@ -24,6 +25,12 @@ pub struct Node {
     pub cost: usize,
     pub heuristic: usize,
     pub parents: Option<Rc<Node>>,
+}
+
+impl Hash for Node {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.board.hash(state);
+    }
 }
 
 pub struct NodeIter<'a> {
