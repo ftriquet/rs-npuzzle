@@ -110,7 +110,7 @@ fn print_result(n: &Node) -> usize {
         }
         println!("");
     }
-    println!("Solved in {} moves!", solution_len);
+    println!("Solved in {} moves!", solution_len - 1);
 
     solution_len
 }
