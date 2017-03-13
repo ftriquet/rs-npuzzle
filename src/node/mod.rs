@@ -326,7 +326,7 @@ impl Node {
         }
     }
 
-    fn permute<H: heuristics::Heuristic<Node>>(direction: Direction, h: &H, n: &Rc<Node>) -> Node {
+    fn permute<H: heuristics::Heuristic<T=Node>>(direction: Direction, h: &H, n: &Rc<Node>) -> Node {
         let (x, y) = n.get_pos(0).unwrap();
 
         let (new_x, new_y) = match direction {
@@ -352,13 +352,13 @@ impl Node {
         Node {
             board: new_board,
             len: n.len,
-            heuristic: h.eval(tmp_node),
+            heuristic: h.eval(&tmp_node),
             cost: n.cost + 1,
             parents: Some(n.clone()),
         }
     }
 
-    pub fn get_next_steps<H: heuristics::Heuristic<Node>>(n: &Rc<Node>, h: &H) -> Vec<Node> {
+    pub fn get_next_steps<H: heuristics::Heuristic<T=Node>>(n: &Rc<Node>, h: &H) -> Vec<Node> {
         let (x, y) = n.get_pos(0).unwrap();
 
         let mut next_states: Vec<Node> = Vec::with_capacity(4);

@@ -134,24 +134,15 @@ pub fn solve(n: Node) {
             let neighbours = Node::get_next_steps(&r, &h);
 
             for neighbour in neighbours {
-                if closed.get(&r).is_some() {
+                if closed.get(&neighbour).is_some() {
                     continue;
                 }
 
-                let mut should_push = false;
-                open.iter().find(|&node| {
-                    **node == neighbour
-                }).or_else(|| {
-                    should_push = true;
-                    None
-                }).and_then(|n| {
-                    if n.cost > neighbour.cost {
-                        should_push = true;
-                        Some(())
-                    } else {
-                        None
-                    }
-                });
+                let should_push = open.iter()
+                    .find(|&node| **node == neighbour)
+                    .map(|node| node.cost > neighbour.cost)
+                    .unwrap_or(true);
+
                 if should_push {
                     open.push(Rc::new(neighbour));
                 }

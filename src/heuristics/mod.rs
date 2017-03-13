@@ -5,14 +5,30 @@ pub struct Euclide;
 pub struct LinearConflict;
 pub struct MisplacedTiles;
 
-pub trait Heuristic<T> {
-    fn eval(&self, _: T) -> usize {
+// pub struct Compositor<T, W>(T, W);
+
+// impl<T, W> Heuristic<node::Node> for Compositor<T, W>
+// where T: Heuristic<node::Node>,
+//       W: Heuristic<node::Node>
+// {
+//     fn eval(&self, n: &node::Node) -> usize {
+//         self.0.eval(n) + self.1.eval(n)
+//     }
+// }
+
+
+pub trait Heuristic {
+    type T;
+
+    fn eval(&self, _: &Self::T) -> usize {
         0
     }
 }
 
-impl Heuristic<node::Node> for Manhattan {
-    fn eval(&self, n: node::Node) -> usize {
+impl Heuristic for Manhattan {
+    type T = node::Node;
+
+    fn eval(&self, n: &Self::T) -> usize {
         let mut sum = 0_usize;
         let goal = node::Node::goal(n.len);
 
@@ -27,8 +43,10 @@ impl Heuristic<node::Node> for Manhattan {
     }
 }
 
-impl Heuristic<node::Node> for MisplacedTiles {
-    fn eval(&self, n: node::Node) -> usize {
+impl Heuristic for MisplacedTiles {
+    type T = node::Node;
+
+    fn eval(&self, n: &node::Node) -> usize {
         let mut sum = 0_usize;
         let goal = node::Node::goal(n.len);
 
@@ -42,8 +60,10 @@ impl Heuristic<node::Node> for MisplacedTiles {
     }
 }
 
-impl Heuristic<node::Node> for Euclide {
-    fn eval(&self, n: node::Node) -> usize {
+impl Heuristic for Euclide {
+    type T = node::Node;
+
+    fn eval(&self, n: &node::Node) -> usize {
         let mut sum = 0_usize;
         let goal = node::Node::goal(n.len);
 
@@ -68,13 +88,15 @@ fn conflict(n: &node::Node, line: usize, col1: usize, col2: usize) -> bool {
     ix == kx && iy > ky
 }
 
-impl Heuristic<node::Node> for LinearConflict {
-    fn eval(&self, n: node::Node) -> usize {
+impl Heuristic for LinearConflict {
+    type T = node::Node;
+
+    fn eval(&self, n: &node::Node) -> usize {
         let mut sum = 0_usize;
         for i in 0..n.len {
             for j in 0..n.len {
                 for k in j..n.len {
-                    if conflict(&n, i, j, k) {
+                    if conflict(n, i, j, k) {
                         sum += 2
                     }
                 }
