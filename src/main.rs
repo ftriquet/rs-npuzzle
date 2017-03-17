@@ -53,18 +53,30 @@ fn main() {
             Err(e) => println!("Error: {}", e),
         }
     } else if let Some(matches) = matches.subcommand_matches("generate") {
-        let size: usize = matches.value_of("size").unwrap_or("3").parse().unwrap_or_else(|v| {
-            println!("Warning: Invalid value provided for size: {}, usign default value (3)", v);
-            3
-        });
-        let solvable: bool = matches.value_of("solvable").unwrap_or("true").parse().unwrap_or_else(|v| {
-            println!("Warning: Invalid value provided for solvable: {}, usign default value (true)", v);
-            true
-        });
-        let iterations: usize = matches.value_of("iterations").unwrap_or("10").parse().unwrap_or_else(|v| {
-            println!("Warning: Invalid value provided for iterations: {}, usign default value (10)", v);
-            10
-        });
+        let size: usize = matches.value_of("size")
+            .unwrap_or("3")
+            .parse()
+            .unwrap_or_else(|v| {
+                println!("Warning: Invalid value provided for size: {},\
+                     usign default value (3)", v);
+                3
+            });
+        let solvable: bool = matches.value_of("solvable")
+            .unwrap_or("true")
+            .parse()
+            .unwrap_or_else(|v| {
+                println!("Warning: Invalid value provided for solvable: {},\
+                         usign default value (true)", v);
+                true
+            });
+        let iterations: usize = matches.value_of("iterations")
+            .unwrap_or("10")
+            .parse()
+            .unwrap_or_else(|v| {
+                println!("Warning: Invalid value provided for iterations: {},\
+                         using default value (10)", v);
+                10
+            });
 
         let n = Node::random(size, iterations, solvable);
         println!("{}", n.len);
@@ -121,8 +133,10 @@ pub fn solve(n: Node) {
     let r = Rc::new(n);
 
     let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
+    let mut opened: HashSet<Rc<Node>> = HashSet::new();
     let mut closed: HashSet<Rc<Node>> = HashSet::new();
 
+    opened.insert(r.clone());
     open.push(r);
 
     while let Some(node) = open.pop() {
@@ -138,15 +152,17 @@ pub fn solve(n: Node) {
                     continue;
                 }
 
-                let should_push = open.iter()
-                    .find(|&node| **node == neighbour)
+                let should_push = opened.get(&neighbour)
                     .map(|node| node.cost > neighbour.cost)
                     .unwrap_or(true);
 
                 if should_push {
-                    open.push(Rc::new(neighbour));
+                    let rc = Rc::new(neighbour);
+                    opened.insert(rc.clone());
+                    open.push(rc.clone());
                 }
             }
+            opened.remove(r.as_ref());
             closed.insert(r);
         }
     }
