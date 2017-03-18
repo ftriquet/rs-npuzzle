@@ -179,12 +179,12 @@ impl FromStr for Node {
             heuristic: 0,
             parents: None,
         };
-        if !node.is_solvable() {
-            Err(NodeError::UnsolvableError)
-        } else if node.check_content() {
-            Ok(node)
-        } else {
+        if !node.check_content() {
             Err(NodeError::InvalidContentError)
+        } else if !node.is_solvable() {
+            Err(NodeError::UnsolvableError)
+        } else {
+            Ok(node)
         }
     }
 }
