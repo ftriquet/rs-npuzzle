@@ -138,10 +138,18 @@ pub fn solve(n: Node) {
 
     opened.insert(r.clone());
     open.push(r);
+    let mut total_states = 1_usize;
+    let mut max_states = 0_usize;
 
     while let Some(node) = open.pop() {
+        let sum = opened.len();
+        if sum > max_states {
+            max_states = sum;
+        }
         if *(node.as_ref()) == goal {
             print_result(node.as_ref());
+            println!("{} states ever selected in open set", total_states);
+            println!("{} states represented in memory at the same time", max_states);
             break
         } else {
             let r = node;
@@ -157,6 +165,7 @@ pub fn solve(n: Node) {
                     .unwrap_or(true);
 
                 if should_push {
+                    total_states += 1;
                     let rc = Rc::new(neighbour);
                     opened.insert(rc.clone());
                     open.push(rc.clone());
