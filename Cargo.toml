@@ -1,6 +1,6 @@
 [package]
-authors = ["François Triquet <francois.triquet@recast.ai>"]
-name = "npuzzle"
+authors = ["François Triquet <francois.triquet@recast.ai>", "Alex Kpenou <akpenou@students.42.fr>"]
+name = "n-puzzle"
 version = "0.1.0"
 
 [dependencies]

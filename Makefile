@@ -1,4 +1,4 @@
-NAME = npuzzle
+NAME = n-puzzle
 
 all: $(NAME)
 
