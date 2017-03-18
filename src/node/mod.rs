@@ -1,6 +1,5 @@
 use std::fmt;
 use std::cmp::Ordering;
-use heuristics;
 use std::str::FromStr;
 use rand;
 use rand::Rng;
@@ -123,6 +122,20 @@ impl fmt::Display for NodeError {
     }
 }
 
+fn inversions(board: &[usize]) -> usize {
+    let mut res = 0;
+
+    for i in 0..(board.len() - 1) {
+        for j in (i + 1)..board.len() {
+            if board[i] != 0 && board[j] != 0 && board[i] > board[j]  {
+                res += 1;
+            }
+        }
+    }
+
+    res
+}
+
 impl FromStr for Node {
     type Err = NodeError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -166,8 +179,9 @@ impl FromStr for Node {
             heuristic: 0,
             parents: None,
         };
-
-        if node.check_content() {
+        if !node.is_solvable() {
+            Err(NodeError::UnsolvableError)
+        } else if node.check_content() {
             Ok(node)
         } else {
             Err(NodeError::InvalidContentError)
@@ -208,6 +222,18 @@ impl Node {
             heuristic: 0,
             parents: None,
         }
+    }
+
+    pub fn is_solvable(&self) -> bool {
+        let goal = Node::goal(self.len);
+        let mut goal_invs = inversions(goal.board.as_slice());
+        let mut self_invs = inversions(self.board.as_slice());
+        if self.len % 2 == 0 {
+            self_invs += self.board.iter().position(|&e| e == 0).unwrap_or(0);
+            goal_invs += goal.board.iter().position(|&e| e == 0).unwrap_or(0);
+        }
+
+        goal_invs % 2 == self_invs % 2
     }
 
     pub fn check_content(&self) -> bool {
@@ -326,7 +352,7 @@ impl Node {
         }
     }
 
-    fn permute<H: heuristics::Heuristic<T=Node>>(direction: Direction, h: &H, n: &Rc<Node>) -> Node {
+    fn permute(direction: Direction, h: fn(&Node) -> usize, n: &Rc<Node>) -> Node {
         let (x, y) = n.get_pos(0).unwrap();
 
         let (new_x, new_y) = match direction {
@@ -352,13 +378,13 @@ impl Node {
         Node {
             board: new_board,
             len: n.len,
-            heuristic: h.eval(&tmp_node),
+            heuristic: h(&tmp_node),
             cost: n.cost + 1,
             parents: Some(n.clone()),
         }
     }
 
-    pub fn get_next_steps<H: heuristics::Heuristic<T=Node>>(n: &Rc<Node>, h: &H) -> Vec<Node> {
+    pub fn get_next_steps(n: &Rc<Node>, h: fn(&Node) -> usize) -> Vec<Node> {
         let (x, y) = n.get_pos(0).unwrap();
 
         let mut next_states: Vec<Node> = Vec::with_capacity(4);

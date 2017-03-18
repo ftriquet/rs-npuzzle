@@ -20,23 +20,50 @@ fn main() {
                     .arg(Arg::with_name("size")
                          .short("s")
                          .long("size")
-                         .value_name("SIZE"))
+                         .takes_value(true))
                     .arg(Arg::with_name("solvable")
                          .long("solvable")
-                         .value_name("SOLVABLE"))
+                         .takes_value(true))
                     .arg(Arg::with_name("iterations")
                          .short("i")
                          .long("iterations")
-                         .value_name("ITERATIONS")))
+                         .takes_value(true)))
         .subcommand(SubCommand::with_name("solve")
                     .about("solves random game configuration")
                     .arg(Arg::with_name("file")
                          .index(1)
-                         .value_name("FILE"))).get_matches();
+                         .value_name("FILE"))
+                    .arg(Arg::with_name("random")
+                         .long("random")
+                         .short("r"))
+                    .arg(Arg::with_name("heuristic")
+                         .long("heuristic")
+                         .short("h")
+                         .takes_value(true))).get_matches();
 
     if let Some(matches) = matches.subcommand_matches("solve") {
+        let heuristic = match matches.value_of("heuristic").unwrap_or("manhattan").to_lowercase().as_ref() {
+            "manhattan" => heuristics::eval_manhattan,
+            "euclide" => heuristics::eval_euclide,
+            "conflict" => heuristics::eval_conflict,
+            "misplaced" => heuristics::eval_misplaced,
+            h @ _ => {
+                println!("Invalid value for heuritic: {}, possible values are: \
+                \nmanhattan: Manhattan distance \
+                \neuclide: Euclidean distance \
+                \nlinearconflict: Linear Conflict \
+                \nmisplaced: Misplaced tiles", h);
+                return;
+            }
+        };
 
-        let file_name = matches.value_of("file").unwrap_or("default.map");
+        let file_name = match matches.value_of("file") {
+            Some(f) => f,
+            _ => {
+                println!("Missing map parameter");
+                return;
+            }
+        };
         let mut file = match File::open(file_name) {
             Ok(f) => f,
             Err(e) => {
@@ -49,7 +76,7 @@ fn main() {
         file.read_to_string(&mut s).expect("Unable to read file");
 
         match s.parse::<Node>() {
-            Ok(n) => solve(n),
+            Ok(n) => solve(n, heuristic),
             Err(e) => println!("Error: {}", e),
         }
     } else if let Some(matches) = matches.subcommand_matches("generate") {
@@ -127,9 +154,8 @@ fn print_result(n: &Node) -> usize {
     solution_len
 }
 
-pub fn solve(n: Node) {
+pub fn solve(n: Node, h: fn(&node::Node) -> usize) {
     let goal: Node = Node::goal(n.len);
-    let h = heuristics::Manhattan;
     let r = Rc::new(n);
 
     let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
@@ -153,7 +179,7 @@ pub fn solve(n: Node) {
             break
         } else {
             let r = node;
-            let neighbours = Node::get_next_steps(&r, &h);
+            let neighbours = Node::get_next_steps(&r, h);
 
             for neighbour in neighbours {
                 if closed.get(&neighbour).is_some() {
