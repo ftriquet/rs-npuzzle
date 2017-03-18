@@ -153,8 +153,13 @@ fn print_result(n: &Node) -> usize {
 
 pub fn solve(n: Node, h: fn(&node::Node) -> usize) {
     let goal: Node = Node::goal(n.len);
-    let r = Rc::new(n);
 
+    if n == goal {
+        println!("Puzzle is already solved");
+        return;
+    }
+
+    let r = Rc::new(n);
     let mut open: BinaryHeap<Rc<Node>> = BinaryHeap::new();
     let mut opened: HashSet<Rc<Node>> = HashSet::new();
     let mut closed: HashSet<Rc<Node>> = HashSet::new();
