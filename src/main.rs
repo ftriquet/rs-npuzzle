@@ -81,7 +81,7 @@ fn main() {
             .unwrap_or("3")
             .parse()
             .unwrap_or_else(|v| {
-                println!("Warning: Invalid value provided for size: {},\
+                println!("#Warning: Invalid value provided for size: {},\
                      usign default value (3)", v);
                 3
             });
@@ -89,7 +89,7 @@ fn main() {
             .unwrap_or("true")
             .parse()
             .unwrap_or_else(|v| {
-                println!("Warning: Invalid value provided for solvable: {},\
+                println!("#Warning: Invalid value provided for solvable: {},\
                          usign default value (true)", v);
                 true
             });
@@ -97,7 +97,7 @@ fn main() {
             .unwrap_or("10")
             .parse()
             .unwrap_or_else(|v| {
-                println!("Warning: Invalid value provided for iterations: {},\
+                println!("#Warning: Invalid value provided for iterations: {},\
                          using default value (10)", v);
                 10
             });

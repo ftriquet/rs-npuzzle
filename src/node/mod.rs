@@ -75,8 +75,8 @@ impl PartialEq for Node {
             return false;
         }
 
-        for (i, &v) in self.board.iter().enumerate() {
-            if v != other.board[i] {
+        for (v, v2) in self.board.iter().zip(other.board.iter()) {
+            if v != v2 {
                 return false;
             }
         }
@@ -133,14 +133,6 @@ fn inversions(board: &[usize]) -> usize {
         }
     }
 
-    //for i in 0..(board.len() - 1) {
-    //    for j in (i + 1)..board.len() {
-    //        if board[i] != 0 && board[j] != 0 && board[i] > board[j]  {
-    //            res += 1;
-    //        }
-    //    }
-    //}
-
     res
 }
 
@@ -158,8 +150,11 @@ impl FromStr for Node {
         });
 
         let len = try!(lines.next()
-            .ok_or(NodeError::ParseError)
-            .and_then(|line| line.parse::<usize>().map_err(|_| NodeError::ParseError)));
+                       .ok_or(NodeError::ParseError)
+                       .and_then(|line| line.parse::<usize>().map_err(|_| NodeError::ParseError)));
+        if len == 0 {
+            return Err(NodeError::ParseError)
+        }
 
         for l in lines {
             let str_values = l.split_whitespace().collect::<Vec<_>>();
@@ -292,6 +287,10 @@ impl Node {
         let mut possibilities: Vec<usize> = Vec::new();
         let size = self.len;
 
+        if size <= 1 {
+            return;
+        }
+
         let index = match self.get_pos(0) {
             None => return,
             Some((x, y)) => x * self.len + y,
@@ -319,12 +318,22 @@ impl Node {
     }
 
     pub fn make_unsolvable(&mut self) {
-        let (idx1, idx2) = if self.board[0] == 0 || self.board[1] == 0 {
-            (self.len * self.len - 1, self.len * self.len - 2)
-        } else {
-            (0, 1)
-        };
-        self.board.swap(idx1, idx2);
+        match self.len {
+            0 => return,
+            1 => {
+                self.board[0] = 2;
+                return;
+            }
+            _ => {
+
+                let (idx1, idx2) = if self.board[0] == 0 || self.board[1] == 0 {
+                    (self.len * self.len - 1, self.len * self.len - 2)
+                } else {
+                    (0, 1)
+                };
+                self.board.swap(idx1, idx2);
+            }
+        }
     }
 
     pub fn format_colors(b1: &[usize], b2: &[usize]) -> Vec<(Colour, usize)> {
