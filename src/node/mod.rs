@@ -229,8 +229,8 @@ impl Node {
         let mut goal_invs = inversions(goal.board.as_slice());
         let mut self_invs = inversions(self.board.as_slice());
         if self.len % 2 == 0 {
-            self_invs += self.board.iter().position(|&e| e == 0).unwrap_or(0);
-            goal_invs += goal.board.iter().position(|&e| e == 0).unwrap_or(0);
+            self_invs += self.board.iter().position(|&e| e == 0).unwrap_or(0) / self.len;
+            goal_invs += goal.board.iter().position(|&e| e == 0).unwrap_or(0) / self.len;
         }
 
         goal_invs % 2 == self_invs % 2
