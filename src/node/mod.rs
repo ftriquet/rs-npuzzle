@@ -125,13 +125,21 @@ impl fmt::Display for NodeError {
 fn inversions(board: &[usize]) -> usize {
     let mut res = 0;
 
-    for i in 0..(board.len() - 1) {
-        for j in (i + 1)..board.len() {
-            if board[i] != 0 && board[j] != 0 && board[i] > board[j]  {
+    for (i, &node) in board.iter().enumerate().take(board.len() - 1) {
+        for &node2 in board.iter().skip(i) {
+            if node != 0 && node2 != 0 && node > node2  {
                 res += 1;
             }
         }
     }
+
+    //for i in 0..(board.len() - 1) {
+    //    for j in (i + 1)..board.len() {
+    //        if board[i] != 0 && board[j] != 0 && board[i] > board[j]  {
+    //            res += 1;
+    //        }
+    //    }
+    //}
 
     res
 }

@@ -44,12 +44,12 @@ fn main() {
             "euclide" => heuristics::eval_euclide,
             "conflict" => heuristics::eval_conflict,
             "misplaced" => heuristics::eval_misplaced,
-            h @ _ => {
+            h  => {
                 println!("Invalid value for heuritic: {}, possible values are: \
-                \nmanhattan: Manhattan distance \
-                \neuclide: Euclidean distance \
-                \nlinearconflict: Linear Conflict \
-                \nmisplaced: Misplaced tiles", h);
+                \n\tmanhattan: Manhattan distance \
+                \n\teuclide: Euclidean distance \
+                \n\tlinearconflict: Linear Conflict \
+                \n\tmisplaced: Misplaced tiles", h);
                 return;
             }
         };
